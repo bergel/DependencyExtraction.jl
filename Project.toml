@@ -3,6 +3,9 @@ uuid = "bd076b5a-78f4-4088-9153-b9331f9ae914"
 authors = ["Alexandre Bergel <alexandre.bergel@me.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+
 [compat]
 julia = "1"
 
