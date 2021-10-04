@@ -24,9 +24,17 @@ end
     @test calls == [:f, :bar, :zork]
 end
 
-@testset "Importing a function" begin
+@testset "Importing a function and fetching function" begin
     model = DEModel()
     code = "function f()\n    bar()\n    zork()\nend"
     importCode(model, code)
     @test numberOfFunctions(model) == 1
+
+    myFunc = getFunction(model, "f")
+    @test myFunc !== nothing
+    @test typeof(myFunc) == DEFunction
+    @test numberOfOutgoingCallnames(myFunc) == 3
+    @test getCallnames(myFunc) == ["f", "bar", "zork"]
+
+    @test getFunction(model, "zorkbar") === nothing
 end
