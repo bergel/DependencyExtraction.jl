@@ -2,8 +2,7 @@ module DependencyExtraction
 
 # EXPORT
 export DEFunction, getName, numberOfOutgoingCallnames, getCallnames
-export DEModel, numberOfFunctions, importCode, getFunction
-
+export DEModel, numberOfFunctions, importCode, getFunction, dumpAsCSV
 export parseString, runOver
 
 mutable struct DEFunction
@@ -49,6 +48,8 @@ function importCode(m::DEModel, code::String)
     function addCallToLastFunction(aCallName::Symbol)
         push!(lastFunction.outgoingCallnames, String(aCallName))
     end
+    function addCallToLastFunction(aCallName::Any)
+    end    
     runOver(expr, onFunction=createNewFunction, onCall=addCallToLastFunction)
 end
 
@@ -58,6 +59,8 @@ function runOver(expr::Expr; onFunction=(x)->x, onCall=(x)->x)
         onCall(expr.args[1])
     end
     if(expr.head == :function) 
+        # print("DEBUG: ")
+        # println(expr.args)
         onFunction(expr.args[1].args[1])
     end
     #runOver(expr.head, onFunction=onFunction, onCall=onCall, onValue=onValue, onSymbol=onSymbol)
@@ -71,11 +74,17 @@ function runOver(expr::Any; onFunction=(x)->x, onCall=(x)->x)
 end
 
 
-function runExample() 
-    path = "/Applications/Julia-1.6.app/Contents/Resources/julia/share/julia/stdlib/v1.6/Test/src/Test.jl"
-    model = DEModel()
-    f = open(path)
-    
-
+function dumpAsCSV(model::DEModel, fullPathname::String)
+    open(fullPathname, "w") do f
+        write(f, "FromFunction,ToFunction\n")
+        for aFunction::DEFunction in model.functions
+            for aToFunctionName in aFunction.outgoingCallnames
+                write(f, getName(aFunction))
+                write(f, ",")
+                write(f, aToFunctionName)
+                write(f, "\n")
+            end
+        end
+    end
 end
 end

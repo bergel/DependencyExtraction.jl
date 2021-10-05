@@ -38,3 +38,18 @@ end
 
     @test getFunction(model, "zorkbar") === nothing
 end
+
+@testset "Importing a function with a weird name" begin
+    model = DEModel()
+    code = "function FooBar.f()\n    bar()\n    zork()\nend"
+    importCode(model, code)
+    @test numberOfFunctions(model) == 1
+
+    myFunc = getFunction(model, "f")
+    @test myFunc !== nothing
+    @test typeof(myFunc) == DEFunction
+    @test numberOfOutgoingCallnames(myFunc) == 3
+    @test getCallnames(myFunc) == ["f", "bar", "zork"]
+
+    @test getFunction(model, "zorkbar") === nothing
+end
