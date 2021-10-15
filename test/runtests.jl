@@ -69,3 +69,17 @@ end
 
     @test getFunction(model, "zorkbar") === nothing
 end
+
+@testset "Importing a function with a weird name (2)" begin
+    model = DEModel()
+    code = "function record end"
+    importCode(model, code)
+    @test numberOfFunctions(model) == 1
+
+    myFunc = getFunction(model, "record")
+    @test myFunc !== nothing
+
+    @test typeof(myFunc) == DEFunction
+    @test numberOfOutgoingCallnames(myFunc) == 0
+    @test getCallnames(myFunc) == [ ]
+end

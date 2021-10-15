@@ -60,13 +60,39 @@ end
 
 
 function runOver(expr::Expr; onFunction=(x)->x, onCall=(x)->x)
+    if(expr.head == Symbol)
+        return
+    end
+
+    # call within a function body
     if(expr.head == :call) 
         onCall(expr.args[1])
     end
-    if(expr.head == :function) 
+
+    # Assuming we have something like:
+    # 2: Expr
+    # head: Symbol function
+    # args: Array{Any}((1,))
+    #   1: Symbol record
+    if(expr.head == :function) && (typeof(expr.args[1]) == Symbol)
         #print("DEBUG: ")
         #println(getFunctionNameFromAST(expr.args[1].args[1]))
-        # println(expr.args)
+        #println(expr)
+        onFunction(getFunctionNameFromAST(expr.args[1]))
+    end
+
+    # Assuming we have something like:
+    # 2: Expr
+    # head: Symbol function
+    # args: Array{Any}((2,))
+    #   1: Expr
+    #     head: Symbol call
+    #     args: Array{Any}((1,))
+    #       1: Symbol FooBarf
+    if(expr.head == :function) && (typeof(expr.args[1]) == Expr) && (expr.args[1].head == :call)
+        #print("DEBUG: ")
+        #println(getFunctionNameFromAST(expr.args[1].args[1]))
+        #println(expr)
         onFunction(getFunctionNameFromAST(expr.args[1].args[1]))
     end
     #runOver(expr.head, onFunction=onFunction, onCall=onCall, onValue=onValue, onSymbol=onSymbol)
