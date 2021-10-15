@@ -39,6 +39,18 @@ end
     @test getFunction(model, "zorkbar") === nothing
 end
 
+@testset "Extracting function name" begin
+    code = "function FooBarf()\n    bar()\n    zork()\nend"
+    expr = parseString(code)
+    functionNameExpr = expr.args[2].args[1].args[1]
+    @test getFunctionNameFromAST(functionNameExpr) == "FooBarf"
+
+    code = "function FooBar.f()\n    bar()\n    zork()\nend"
+    expr = parseString(code)
+    functionNameExpr = expr.args[2].args[1].args[1]
+    @test getFunctionNameFromAST(functionNameExpr) == "FooBar.f"
+end
+
 @testset "Importing a function with a weird name" begin
     model = DEModel()
     code = "function FooBar.f()\n    bar()\n    zork()\nend"
@@ -46,10 +58,14 @@ end
     @test numberOfFunctions(model) == 1
 
     myFunc = getFunction(model, "f")
+    @test myFunc === nothing
+
+    myFunc = getFunction(model, "FooBar.f")
     @test myFunc !== nothing
+
     @test typeof(myFunc) == DEFunction
-    @test numberOfOutgoingCallnames(myFunc) == 3
-    @test getCallnames(myFunc) == ["f", "bar", "zork"]
+    @test numberOfOutgoingCallnames(myFunc) == 2
+    @test getCallnames(myFunc) == ["bar", "zork"]
 
     @test getFunction(model, "zorkbar") === nothing
 end

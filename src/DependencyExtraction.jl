@@ -5,6 +5,9 @@ export DEFunction, getName, numberOfOutgoingCallnames, getCallnames
 export DEModel, numberOfFunctions, importCode, getFunction, dumpAsCSV
 export parseString, runOver
 
+# EXPORT FOR TESTING
+export getFunctionNameFromAST
+
 mutable struct DEFunction
     name::String
     beginLOC::Int
@@ -23,7 +26,9 @@ mutable struct DEModel
 end
 DEModel() = DEModel("", [])
 numberOfFunctions(model::DEModel) = length(model.functions)
-addFunction!(model::DEModel, aFunction::DEFunction) = push!(model.functions, aFunction)
+function addFunction!(model::DEModel, aFunction::DEFunction)
+    push!(model.functions, aFunction)
+end
 function getFunction(model::DEModel, aFunctionName::String) 
     answer = filter(aFunction -> aFunction.name == aFunctionName, model.functions)
     if(length(answer) > 0)
@@ -59,9 +64,10 @@ function runOver(expr::Expr; onFunction=(x)->x, onCall=(x)->x)
         onCall(expr.args[1])
     end
     if(expr.head == :function) 
-        # print("DEBUG: ")
+        #print("DEBUG: ")
+        #println(getFunctionNameFromAST(expr.args[1].args[1]))
         # println(expr.args)
-        onFunction(expr.args[1].args[1])
+        onFunction(getFunctionNameFromAST(expr.args[1].args[1]))
     end
     #runOver(expr.head, onFunction=onFunction, onCall=onCall, onValue=onValue, onSymbol=onSymbol)
     for i in expr.args
@@ -69,8 +75,24 @@ function runOver(expr::Expr; onFunction=(x)->x, onCall=(x)->x)
     end
 end
 
+function getFunctionNameFromAST(aSymbol::Symbol)
+    return String(aSymbol)
+end
+
+"Could be something like 
+Expr
+          head: Symbol .
+          args: Array{Any}((2,))
+            1: Symbol FooBar
+            2: QuoteNode
+              value: Symbol f
+"
+function getFunctionNameFromAST(anExpression::Expr)
+    return String(anExpression.args[1]) * String(anExpression.head) * String(anExpression.args[2].value)
+end
+
 function runOver(expr::Any; onFunction=(x)->x, onCall=(x)->x)
-    # do nothing for now
+    # do nothing for now 
 end
 
 
